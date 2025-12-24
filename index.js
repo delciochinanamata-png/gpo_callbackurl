@@ -269,7 +269,6 @@ module.exports = async function ({ req, res, log, error }) {
             doc.$id,
             {
               status: "confirmed",
-              confirmedAt: new Date().toISOString(),
             }
           );
 
