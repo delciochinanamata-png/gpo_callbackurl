@@ -74,7 +74,7 @@ module.exports = async function ({ req, res, log, error }) {
             "681fb5ae001d3beb714e", // collection ID (cart items)
             [
               Query.equal("userId", givenUserId),
-              Query.equal("cartId", givenCartId),
+              Query.equal("$id", givenCartId),
             ]
           );
 
