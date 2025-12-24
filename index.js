@@ -68,11 +68,15 @@ module.exports = async function ({ req, res, log, error }) {
       // Main purchase registration function
       async function registerPurchase(givenUserId, givenCartId) {
         try {
+          // DEBUG: Check what we're working with
           log(
             `DEBUG - givenCartId: ${givenCartId}, type: ${typeof givenCartId}`
           );
           log(`DEBUG - givenCartId as number: ${Number(givenCartId)}`);
           log(`DEBUG - givenCartId as string: "${String(givenCartId)}"`);
+
+          // Convert cartId to NUMBER for queries (your schema expects integer)
+          const cartIdNumber = Number(givenCartId);
 
           // Step 1: Find documents that match the condition
           const result = await database.listDocuments(
@@ -94,7 +98,7 @@ module.exports = async function ({ req, res, log, error }) {
               [
                 Query.equal("userId", givenUserId),
                 Query.equal("itemDescriptionId", doc.itemDescriptionId),
-                Query.equal("cartId", givenCartId),
+                Query.equal("cartId", cartIdNumber), // Use NUMBER
               ]
             );
 
@@ -148,7 +152,7 @@ module.exports = async function ({ req, res, log, error }) {
                 await sendEmail(doc.creatorUserId, subject, content);
               }
 
-              // Create purchase document
+              // Create purchase document - use NUMBER for cartId
               await database.createDocument(
                 "67a684a9002817a69692",
                 "67a90671000df73d91d6",
@@ -161,7 +165,7 @@ module.exports = async function ({ req, res, log, error }) {
                     ? doc.itemQuantity * doc.itemPrice -
                       doc.itemQuantity * doc.itemPrice * 0.1
                     : doc.itemQuantity * doc.itemPrice,
-                  cartId: givenCartId,
+                  cartId: cartIdNumber, // Store as NUMBER
                   creatorUserId: doc.creatorUserId,
                   affiliateId: doc.affiliateId,
                   deliveryState:
@@ -223,6 +227,33 @@ module.exports = async function ({ req, res, log, error }) {
           await removeItemFromCart("itemPaid");
         } catch (err) {
           log(`Error in registerPurchase: ${err.message}`);
+
+          // Add more detailed error information
+          if (err.message.includes("cartId")) {
+            log("ERROR DETAILS - cartId query issue:");
+            log(`  givenCartId value: ${givenCartId}`);
+            log(`  givenCartId type: ${typeof givenCartId}`);
+            log(`  converted to number: ${Number(givenCartId)}`);
+
+            // Try to get a sample from the purchase collection to see the schema
+            try {
+              const sample = await database.listDocuments(
+                "67a684a9002817a69692",
+                "67a90671000df73d91d6",
+                [Query.limit(1)]
+              );
+              if (sample.documents.length > 0) {
+                log(`Sample purchase cartId: ${sample.documents[0].cartId}`);
+                log(
+                  `Sample purchase cartId type: ${typeof sample.documents[0]
+                    .cartId}`
+                );
+              }
+            } catch (sampleErr) {
+              log(`Could not get sample: ${sampleErr.message}`);
+            }
+          }
+
           throw err;
         }
       }
