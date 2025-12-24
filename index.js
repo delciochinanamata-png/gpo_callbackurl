@@ -228,8 +228,6 @@ module.exports = async function ({ req, res, log, error }) {
         amountPaid: amount,
         paymentMethod: "GPO_Iframe",
         paymentReference: paymentReference,
-        status: status,
-        timestamp: new Date().toISOString(),
       };
 
       // Only add currency if it exists in your collection schema
