@@ -39,13 +39,13 @@ module.exports = async function ({ req, res, log, error }) {
 
           log("Response status:", response.status);
           log("Response data:", JSON.stringify(response.data, null, 2));
-        } catch (error) {
+        } catch (err) {
           log("Failed to send email:");
-          if (error.response) {
-            log("Status:", error.response.status);
-            log("Data:", JSON.stringify(error.response.data, null, 2));
+          if (err.response) {
+            log("Status:", err.response.status);
+            log("Data:", JSON.stringify(err.response.data, null, 2));
           } else {
-            log("Error:", error.message);
+            log("Error:", err.message);
           }
         }
       }
@@ -57,10 +57,12 @@ module.exports = async function ({ req, res, log, error }) {
         return date.toISOString();
       }
 
-      // Helper function to remove items from cart (assuming this exists)
+      // Helper function to remove items from cart
       async function removeItemFromCart(status) {
-        // Implement this function or remove if not needed
-        log(`Items marked as: ${status}`);
+        // Implement this function based on your needs
+        log(`Items would be marked as: ${status}`);
+        // Example implementation:
+        // await database.updateDocument(...)
       }
 
       // Main purchase registration function
@@ -220,19 +222,26 @@ module.exports = async function ({ req, res, log, error }) {
         }
       }
 
+      // Check what fields exist in your confirmedpayment collection
+      // Remove or adjust fields that don't exist in the schema
+      const paymentData = {
+        amountPaid: amount,
+        paymentMethod: "GPO_Iframe",
+        paymentReference: paymentReference,
+        status: status,
+        timestamp: new Date().toISOString(),
+      };
+
+      // Only add currency if it exists in your collection schema
+      // If not, you need to add it to your collection first or remove this line
+      // paymentData.currency = currency;
+
       // Save payment to database
       const paymentResult = await database.createDocument(
         "67a684a9002817a69692",
         "confirmedpayment", // collectionId
-        ID.unique(), // Fixed: use ID.unique() instead of "unique()"
-        {
-          amountPaid: amount,
-          paymentMethod: "GPO_Iframe",
-          paymentReference: paymentReference,
-          currency: currency,
-          status: status,
-          timestamp: new Date().toISOString(),
-        }
+        ID.unique(),
+        paymentData
       );
 
       log(`✅ Payment saved to database with ID: ${paymentResult.$id}`);
@@ -277,9 +286,18 @@ module.exports = async function ({ req, res, log, error }) {
 
     // Always respond with 200 OK
     return res.json({ success: true, message: "Callback processed" });
-  } catch (error) {
-    log(`❌ Error processing payment callback: ${error.message}`);
-    log(error.stack);
-    return res.status(500).json({ success: false, error: error.message });
+  } catch (err) {
+    log(`❌ Error processing payment callback: ${err.message}`);
+    log(err.stack || "No stack trace available");
+
+    // In Appwrite Functions, use res.json() with status code in the response
+    return res.json(
+      {
+        success: false,
+        error: err.message,
+        statusCode: 500,
+      },
+      500
+    ); // The second parameter sets the HTTP status
   }
 };
