@@ -58,11 +58,32 @@ module.exports = async function ({ req, res, log, error }) {
       }
 
       // Helper function to remove items from cart
-      async function removeItemFromCart(status) {
-        // Implement this function based on your needs
-        log(`Items would be marked as: ${status}`);
-        // Example implementation:
-        // await database.updateDocument(...)
+      async function removeItemFromCart(deleteType, userId) {
+        //console.log(currentUser.$id);
+
+        try {
+          const databases = new Databases(client);
+
+          // Step 1: Find documents that match the condition
+          const result = await databases.listDocuments(
+            "67a684a9002817a69692", // database ID
+            "681fb5ae001d3beb714e", // collection ID
+            [Query.equal("userId", userId)]
+          );
+
+          // Step 2: Delete each document
+          for (const doc of result.documents) {
+            await databases.deleteDocument(
+              "67a684a9002817a69692",
+              "681fb5ae001d3beb714e",
+              doc.$id
+            );
+          }
+
+          // console.log("Items deleted successfully.");
+        } catch (error) {
+          //console.error("Error deleting item(s):", error);
+        }
       }
 
       // Main purchase registration function
@@ -224,7 +245,7 @@ module.exports = async function ({ req, res, log, error }) {
           }
 
           // Mark cart items as paid
-          await removeItemFromCart("itemPaid");
+          await removeItemFromCart("itemPaid", givenUserId);
         } catch (err) {
           log(`Error in registerPurchase: ${err.message}`);
 
