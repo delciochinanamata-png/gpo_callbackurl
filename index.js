@@ -72,10 +72,7 @@ module.exports = async function ({ req, res, log, error }) {
           const result = await database.listDocuments(
             "67a684a9002817a69692", // database ID
             "681fb5ae001d3beb714e", // collection ID (cart items)
-            [
-              Query.equal("userId", givenUserId),
-              Query.equal("$id", givenCartId),
-            ]
+            [Query.equal("userId", givenUserId)]
           );
 
           log("user id:" + givenUserId);
