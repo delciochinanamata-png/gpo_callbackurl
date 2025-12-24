@@ -78,6 +78,8 @@ module.exports = async function ({ req, res, log, error }) {
             ]
           );
 
+          log("user id:" + givenUserId);
+          log("user cart:" + givenCartId);
           log(`Found ${result.documents.length} items in cart`);
 
           // Step 2: Process each item
