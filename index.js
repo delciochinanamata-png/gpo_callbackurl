@@ -68,6 +68,12 @@ module.exports = async function ({ req, res, log, error }) {
       // Main purchase registration function
       async function registerPurchase(givenUserId, givenCartId) {
         try {
+          log(
+            `DEBUG - givenCartId: ${givenCartId}, type: ${typeof givenCartId}`
+          );
+          log(`DEBUG - givenCartId as number: ${Number(givenCartId)}`);
+          log(`DEBUG - givenCartId as string: "${String(givenCartId)}"`);
+
           // Step 1: Find documents that match the condition
           const result = await database.listDocuments(
             "67a684a9002817a69692", // database ID
